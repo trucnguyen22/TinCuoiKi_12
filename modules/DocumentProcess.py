@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 from streamlit_elements import *
 import streamlit as st
@@ -6,6 +7,7 @@ from io import BytesIO
 import cv2
 # =========================
 from modules.GoogleForm import GoogleFormGenerator
+from modules.code.denoisyProcess import routine
 from modules.modules import Custom_Code
 from streamlit_image_comparison import image_comparison
 IMAGE_TO_URL = {
@@ -42,17 +44,18 @@ class DocumentProcess:
             warning_name_group = st.empty()
         with st.form("upload-form", clear_on_submit=True):
             # Image input
-            col1, col2 = st.columns([3, 2])
+            col1, col2 = st.columns([3, 1])
             with col1:
                 img2_url = st.text_input(
                     "Image Noisy URL:", value=IMAGE_TO_URL["sample_image_1"])
             with col2:
-                uploaded_file = st.file_uploader(model.upload_button_text_desc,
-                                                 #  accept_multiple_files=True,
-                                                 type=['jpg', 'jpeg', 'png'],
-                                                 help=model.upload_help,
-                                                 key="uploaded_file"
-                                                 )
+                pass
+            uploaded_file = st.file_uploader(model.upload_button_text_desc,
+                                             #  accept_multiple_files=True,
+                                             type=['jpg', 'jpeg', 'png'],
+                                             help=model.upload_help,
+                                             key="uploaded_file"
+                                             )
             col1, col2, col3 = st.columns([6, 4, 6])
             with col2:
                 submitted = st.form_submit_button(
@@ -73,10 +76,22 @@ class DocumentProcess:
             data = model.get_file_path()
             image = data["image"]
             imageArray = data["imageArray"]
-            imagegray = cv2.cvtColor(imageArray, cv2.COLOR_BGR2RGB)
+
+            alpha = 0.2
+            gamma = 1
+            step_size = 0.5
+            threshold = 1e-4
+            method = "quadratic"
+
+            posterior_values, denoised_image = routine(
+                imageArray, alpha, gamma, step_size, threshold, method)
+
+            st.write(posterior_values[1:])
+            st.line_chart(posterior_values[1:])
+
             image_comparison(
                 img1=image,
-                img2=imagegray,
+                img2=denoised_image,
                 label1="Image Noisy",
                 label2="Image DeNoised",
                 starting_position=50,
@@ -93,6 +108,6 @@ class DocumentProcess:
     def upload_file(self, model, uploaded_file):
         if uploaded_file is not None:
             pil_image = Image.open(BytesIO(uploaded_file.read()))
-            cv_image = np.array(pil_image)
+            cv_image = np.array(pil_image.convert('L'))
             model.set_file_path({"image": pil_image, "imageArray": cv_image})
             print("input")

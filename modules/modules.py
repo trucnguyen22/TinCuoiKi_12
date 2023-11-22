@@ -6,7 +6,8 @@ def InitPageSetting(st, path, PAGE_NAME, PAGE_ICON, name_file_css="", name_file_
     current_dir = path
     CSS_MAIN = current_dir / "assets" / "styles" / "main.css"
     js_MAIN = current_dir / "assets" / "js" / "main.js"
-    st.set_page_config(PAGE_NAME, PAGE_ICON, layout="centered")
+    st.set_page_config(PAGE_NAME, PAGE_ICON, layout="centered",
+                       initial_sidebar_state="auto")
     if name_file_css:
         css_file = current_dir/"assets" / "styles" / name_file_css
         Custom_CSS(st, CSS_MAIN)

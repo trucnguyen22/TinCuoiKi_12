@@ -55,10 +55,10 @@ section > [data-testid="block-container"] {
   padding: 0;
   padding-top: 2rem;
 }
-[data-testid="element-container"] {
+/* [data-testid="element-container"] {
   display: flex;
   justify-content: space-around;
-}
+} */
 /*=============== SCROLL BAR ===============*/
 ::-webkit-scrollbar {
   width: 0.6rem;
