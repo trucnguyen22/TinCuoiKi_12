@@ -2,9 +2,11 @@ import streamlit as st
 from modules import *
 from pathlib import Path
 
+
 def sidebarConfig(sidebar):
     with sidebar:
         pass
+
 
 def customsGroup(current_dir):
     css__custom = f'{current_dir}/assets/styles/custom.css'
@@ -17,9 +19,9 @@ def customsGroup(current_dir):
 
 
 def main(sidebar):
-    pass
-    # DocumentProcess().viewDocumentation(DocumentProcess.Model(), sidebar)
     # DataReview().view(DataReview.Model(), sidebar)
+    pass
+
 
 def Documentation(sidebar):
     current_dir = Path(".")

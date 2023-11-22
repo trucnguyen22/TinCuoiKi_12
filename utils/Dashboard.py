@@ -3,9 +3,11 @@ from modules import *
 from modules import *
 from pathlib import Path
 
+
 def sidebarConfig(sidebar):
     with sidebar:
         pass
+
 
 def customsGroup(current_dir):
     css__custom = f'{current_dir}/assets/styles/custom.css'
@@ -16,7 +18,13 @@ def customsGroup(current_dir):
             <div/>        
         """)
 
+
+def main(sidebar):
+    DocumentProcess().viewDocumentation(DocumentProcess.Model(), sidebar)
+
+
 def Dashboard(sidebar):
     current_dir = Path(".")
     sidebarConfig(sidebar)
     customsGroup(current_dir)
+    main(sidebar)

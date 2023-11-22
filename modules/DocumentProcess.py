@@ -1,22 +1,24 @@
-import os
-import re
-from streamlit_elements import elements, mui, html
+import numpy as np
 from streamlit_elements import *
 import streamlit as st
-import pandas as pd
-import numpy as np
-import json
-import shutil
-import docx
+from PIL import Image
+from io import BytesIO
+import cv2
 # =========================
 from modules.GoogleForm import GoogleFormGenerator
 from modules.modules import Custom_Code
+from streamlit_image_comparison import image_comparison
+IMAGE_TO_URL = {
+    "sample_image_1": "https://user-images.githubusercontent.com/34196005/143309873-c0c1f31c-c42e-4a36-834e-da0a2336bb19.jpg",
+    "sample_image_2": "https://user-images.githubusercontent.com/34196005/143309867-42841f5a-9181-4d22-b570-65f90f2da231.jpg",
+}
+
 
 class DocumentProcess:
     class Model:
         subheader_1 = "Select"
         subheader_2 = "Tải lên"
-        
+
         upload_help = "Tải file .docx"
         upload_button_text = "Tải lên"
         upload_button_text_desc = "Choose a file"
@@ -28,138 +30,69 @@ class DocumentProcess:
             if 'file_path' not in st.session_state:
                 return None
             return st.session_state['file_path']
-    
+
     def __init__(self) -> None:
-        self.convert_to_label = None
-        self.check = False         
-        self.save_folder = "./assets/output"
-        self.pattern = re.compile(r'^(câu|bài|cau|bai|\d+:)', re.IGNORECASE)                    
-    def viewDocumentation(self, model, sidebar):        
+        pass
+
+    def viewDocumentation(self, model, sidebar):
         placeholder_show = st.empty()
-        
+
         with sidebar:
-            createform = st.empty()
             st.subheader(model.subheader_1)
-            name_group = st.text_input("Tên môn học")
             warning_name_group = st.empty()
-            with st.form("upload-form", clear_on_submit=True):
-                uploaded_file = st.file_uploader(model.upload_button_text_desc, 
-                                                #  accept_multiple_files=True,
-                                                 type=['docx'],
+        with st.form("upload-form", clear_on_submit=True):
+            # Image input
+            col1, col2 = st.columns([3, 2])
+            with col1:
+                img2_url = st.text_input(
+                    "Image Noisy URL:", value=IMAGE_TO_URL["sample_image_1"])
+            with col2:
+                uploaded_file = st.file_uploader(model.upload_button_text_desc,
+                                                 #  accept_multiple_files=True,
+                                                 type=['jpg', 'jpeg', 'png'],
                                                  help=model.upload_help,
-                                                 key="uploaded_file" 
-                                                )
-                submitted = st.form_submit_button(model.upload_button_text)
-                reset = st.form_submit_button("Reset")
-                
-                if reset:
-                    st.session_state.pop('file_path', None)
-                    pass
-                
-                if submitted and uploaded_file is not None:
-                    if name_group == "":
-                        with warning_name_group:
-                            st.warning("Vui lòng nhập tên môn học")
-                        return
-                    with st.spinner('Wait for it...'):
-                        self.upload_file(model, uploaded_file, name_group)
-        
+                                                 key="uploaded_file"
+                                                 )
+            col1, col2, col3 = st.columns([6, 4, 6])
+            with col2:
+                submitted = st.form_submit_button(
+                    model.upload_button_text, use_container_width=True)
+            col1, col2, col3 = st.columns([6, 4, 6])
+            with col2:
+                reset = st.form_submit_button(
+                    "Reset", use_container_width=True)
+
+            if reset:
+                st.session_state.pop('file_path', None)
+                pass
+
+            if submitted and uploaded_file is not None:
+                self.upload_file(model, uploaded_file)
+
         if model.get_file_path() is not None:
-            dataJSON = self.read_json_file(model.get_file_path())
-            
-            st.metric("Số lượng câu hỏi", len(dataJSON))
-            with st.expander("Tạo Form"):
-                st.title("Setting")
-                st.checkbox('Activate quiz', True, key="quiz_toggle")
-                st.checkbox('Activate required', True, key="required_toggle")
-                st.checkbox('Activate shuffle', True, key="shuffle_toggle")
-                with st.form("Create-Form", clear_on_submit=True):
-                    title_form = st.text_input('Tiêu đề form', placeholder='Nhập thông tin ...')
-                    form_description = st.text_input('Thông tin mô tả', placeholder='Nhập thông tin ...')
-                    form_documentTitle = st.text_input('Tên file', placeholder='Nhập thông tin ...')
-                    submitted = st.form_submit_button(model.upload_button_text)    
-                    
-                    if submitted and title_form is not None and form_description is not None and form_documentTitle is not None:
-                        form_generator = GoogleFormGenerator()
-                        form_generator.authenticate()
-                        form_generator.create_google_form(title_form, form_description, form_documentTitle)
-                        form_generator.setting_configure(
-                            is_quiz=st.session_state.quiz_toggle,
-                            is_required=st.session_state.required_toggle,
-                            is_shuffle=st.session_state.shuffle_toggle,
-                        )     
-                        with st.spinner("Wait for it..."):
-                            form_generator.read_data_from_json(dataJSON)     
-                        st.link_button("Link form 😘", form_generator.get_link_form())
-                        pass
-                    else:
-                        st.warning("Vui lòng điền đầy đủ thông tin")
-            st.title("Nội dung")
-            for j, data in enumerate(dataJSON):
-                question = data["question"]
-                answer = data["answer"]
-                right_answer = data["right_answer"]
-                with st.expander(question, False):
-                    st.subheader("Câu trả lời:")
-                    for i,text in enumerate(answer):
-                        st.text_area(text["value"], text["value"], key=f"{j}{i}", disabled=True, label_visibility="hidden")
-                    st.subheader("Câu trả lời đúng:")
-                    for text in right_answer:
-                        st.success(text["value"])
+            data = model.get_file_path()
+            image = data["image"]
+            imageArray = data["imageArray"]
+            imagegray = cv2.cvtColor(imageArray, cv2.COLOR_BGR2RGB)
+            image_comparison(
+                img1=image,
+                img2=imagegray,
+                label1="Image Noisy",
+                label2="Image DeNoised",
+                starting_position=50,
+                show_labels=True,
+                make_responsive=True,
+                in_memory=True,
+            )
+
             pass
         else:
             st.info("Video hướng dẫn")
-            # st.video(open('assets/video/video.mp4', 'rb').read())
-        
-            
-    def set_save_folder_group(self, group):
-        self.save_folder_group = str(group)
-        self.pathfile_result = os.path.join(self.save_folder, self.save_folder_group)
-            
-    def save_file_json(self, model, name, data):
-        output_directory = os.path.join(self.pathfile_result)
-        os.makedirs(output_directory, exist_ok=True)
-        file_path = os.path.join(output_directory, f"{name}.json")
-        model.set_file_path(file_path)
-        with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
-    
-    def read_json_file(self, file_path):
-        try:
-            with open(file_path, 'r', encoding='utf-8') as file:
-                data = json.load(file)
-            return data
-        except FileNotFoundError:
-            print(f"File not found: {file_path}")
-            return None
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON: {str(e)}")
-            return None
-        
-    def upload_file(self, model, uploaded_file, name_group = None):           
-        if name_group is None:
-            name_group = "demo"  
-            
+            st.video(open('assets/video/video.mp4', 'rb').read())
+
+    def upload_file(self, model, uploaded_file):
         if uploaded_file is not None:
-            self.set_save_folder_group(name_group)
-            data_json = []
-            doc = docx.Document(uploaded_file)
-            paragraphs = [p for p in doc.paragraphs if p.text.strip()]
-            print("\n"*5)
-            for i in range(0, len(paragraphs)):
-                if self.pattern.search(paragraphs[i].text):
-                    data_json.append({
-                        "question": paragraphs[i].text,
-                        "answer": [],
-                        "right_answer": []
-                    })
-                    indexOfJson = len(data_json) - 1
-                else:
-                    text = paragraphs[i].text
-                    runs = paragraphs[i].runs
-                    data_json[indexOfJson]["answer"].append({"value":text})
-                    if runs[0].font.color.rgb is not None or runs[0].bold or runs[0].underline:
-                        data_json[indexOfJson]["right_answer"].append({"value":text})
-                
-            json_data = json.dumps(data_json, ensure_ascii=False, indent=4)
-            self.save_file_json(model, name_group, data_json)
+            pil_image = Image.open(BytesIO(uploaded_file.read()))
+            cv_image = np.array(pil_image)
+            model.set_file_path({"image": pil_image, "imageArray": cv_image})
+            print("input")
