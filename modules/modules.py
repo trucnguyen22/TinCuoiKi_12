@@ -1,4 +1,3 @@
-from modules.database import *
 import streamlit as st
 
 

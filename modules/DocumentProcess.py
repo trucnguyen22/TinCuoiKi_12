@@ -4,11 +4,8 @@ from streamlit_elements import *
 import streamlit as st
 from PIL import Image
 from io import BytesIO
-import cv2
 # =========================
-from modules.GoogleForm import GoogleFormGenerator
-from modules.code.denoisyProcess import routine
-from modules.modules import Custom_Code
+from modules.code.denoisyProcess import cost, routine
 from streamlit_image_comparison import image_comparison
 IMAGE_TO_URL = {
     "sample_image_1": "https://user-images.githubusercontent.com/34196005/143309873-c0c1f31c-c42e-4a36-834e-da0a2336bb19.jpg",
@@ -44,18 +41,24 @@ class DocumentProcess:
             warning_name_group = st.empty()
         with st.form("upload-form", clear_on_submit=True):
             # Image input
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                img2_url = st.text_input(
-                    "Image Noisy URL:", value=IMAGE_TO_URL["sample_image_1"])
-            with col2:
-                pass
             uploaded_file = st.file_uploader(model.upload_button_text_desc,
                                              #  accept_multiple_files=True,
                                              type=['jpg', 'jpeg', 'png'],
                                              help=model.upload_help,
                                              key="uploaded_file"
                                              )
+            method = st.selectbox(
+                'Select Function?',
+                ('quadratic', 'log'))
+            col1, col2 = st.columns([1,1])
+            with col1:
+                alpha = st.slider('alpha', 0.0, 1.0, 0.2)
+                gamma = st.slider('gamma', 0, 5, 1)
+            with col2:
+                step_size = st.slider('step_size', 0.0, 2.0, 0.5)
+                threshold = st.slider('threshold', 0.01, 1.0, 0.02)
+            
+            # centered submit button
             col1, col2, col3 = st.columns([6, 4, 6])
             with col2:
                 submitted = st.form_submit_button(
@@ -77,18 +80,11 @@ class DocumentProcess:
             image = data["image"]
             imageArray = data["imageArray"]
 
-            alpha = 0.2
-            gamma = 1
-            step_size = 0.5
-            threshold = 1e-4
-            method = "quadratic"
-
             posterior_values, denoised_image = routine(
                 imageArray, alpha, gamma, step_size, threshold, method)
+            
 
-            st.write(posterior_values[1:])
-            st.line_chart(posterior_values[1:])
-
+            st.write(cost(denoised_image, imageArray))
             image_comparison(
                 img1=image,
                 img2=denoised_image,

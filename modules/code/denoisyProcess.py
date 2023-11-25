@@ -114,3 +114,37 @@ def routine(imgNoisy, alpha, gamma, step, thresh, meth):
             posterior_val.append(old_posterior)
 
     return posterior_val, new_model
+
+
+def optimization_quadratic_prior(imageNoisy):
+    threshold = 1e-7
+    alpha_opt_list = []
+    alpha_opt_list.append(0)        
+    alpha = alpha_opt_list[0]
+    step = 1
+
+    cost_quad=[]
+    while alpha <= 0.2:  
+        post, denoised_model_quad = routine(imageNoisy, alpha, 1, step, threshold, "quadratic")
+        cost_quad.append(cost(denoised_model_quad, imageNoisy))
+        alpha+=0.005
+        alpha_opt_list.append(alpha)
+        
+    alpha_opt_list = alpha_opt_list[:-1] 
+    print("alpha_opt_list: %s" %(alpha_opt_list))
+    
+    alpha_opt = 0.125    
+    post, denoised_model_quad = routine(imageNoisy, 0.125, 1, step, threshold, "quadratic")
+    post = post[1:]
+    post_alpha1, denoised_model_quad_alpha1 = routine(imageNoisy, 1.2*alpha_opt, 1, step, threshold, "quadratic")
+    post_alpha2, denoised_model_quad_alpha2 = routine(imageNoisy, 0.8*alpha_opt, 1, step, threshold, "quadratic")
+
+    cost_noisy = cost(imageNoisy, denoised_model_quad)
+    cost_quad_denoised = cost(denoised_model_quad, denoised_model_quad)
+    cost_quad_alpha1 = cost(denoised_model_quad_alpha1, denoised_model_quad)
+    cost_quad_alpha2 = cost(denoised_model_quad_alpha2, denoised_model_quad)
+
+    print('RMSE for noisy image : %s' %(cost_noisy))
+    print('RMSE for denoised image using alpha=%s and gamma=%s for quad prior : %s' %(alpha_opt, 1,cost_quad_denoised))
+    print('RMSE for denoised image using alpha=%s and gamma=%s for quad prior : %s' %(1.2*alpha_opt, 1,cost_quad_alpha1))
+    print('RMSE for denoised image using alpha=%s and gamma=%s for quad prior : %s' %(0.8*alpha_opt, 1,cost_quad_alpha2))
