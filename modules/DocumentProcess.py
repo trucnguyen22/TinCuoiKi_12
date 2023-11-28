@@ -47,17 +47,6 @@ class DocumentProcess:
                                              help=model.upload_help,
                                              key="uploaded_file"
                                              )
-            method = st.selectbox(
-                'Select Function?',
-                ('quadratic', 'log'))
-            col1, col2 = st.columns([1,1])
-            with col1:
-                alpha = st.slider('alpha', 0.0, 1.0, 0.2)
-                gamma = st.slider('gamma', 0, 5, 1)
-            with col2:
-                step_size = st.slider('step_size', 0.0, 2.0, 0.5)
-                threshold = st.slider('threshold', 0.01, 1.0, 0.02)
-            
             # centered submit button
             col1, col2, col3 = st.columns([6, 4, 6])
             with col2:
@@ -79,9 +68,9 @@ class DocumentProcess:
             data = model.get_file_path()
             image = data["image"]
             imageArray = data["imageArray"]
-
-            posterior_values, denoised_image = routine(
-                imageArray, alpha, gamma, step_size, threshold, method)
+            denoised_image = imageArray
+            # posterior_values, denoised_image = routine(
+            #     imageArray, alpha, gamma, step_size, threshold, method)
             
 
             st.write(cost(denoised_image, imageArray))
@@ -97,9 +86,9 @@ class DocumentProcess:
             )
 
             pass
-        else:
-            st.info("Video hướng dẫn")
-            st.video(open('assets/video/video.mp4', 'rb').read())
+        # else:
+        #     st.info("Video hướng dẫn")
+        #     st.video(open('assets/video/video.mp4', 'rb').read())
 
     def upload_file(self, model, uploaded_file):
         if uploaded_file is not None:
