@@ -10,7 +10,7 @@ def Sidebar(current_dir):
     # banner = Image.open(banner)
     with st.sidebar:
         # st.image(banner)
-        st.title("Tool Create Form")
+        st.title("DỰ ÁN TIN  12 CUỐI KÌ I")
         selected_page = st.empty()
         
         st.divider()
