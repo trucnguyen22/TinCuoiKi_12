@@ -1,11 +1,11 @@
 from matplotlib import pyplot as plt
 import numpy as np
+from modules.code.denoisyProcess import process_image
 from streamlit_elements import *
 import streamlit as st
 from PIL import Image
 from io import BytesIO
 # =========================
-from modules.code.denoisyProcess import cost, routine
 from streamlit_image_comparison import image_comparison
 IMAGE_TO_URL = {
     "sample_image_1": "https://user-images.githubusercontent.com/34196005/143309873-c0c1f31c-c42e-4a36-834e-da0a2336bb19.jpg",
@@ -48,16 +48,16 @@ class DocumentProcess:
                                              key="uploaded_file"
                                              )
             
-            method = st.selectbox(
-                'Select Function?',
-                ('quadratic', 'log'))
-            col1, col2 = st.columns([1,1])
-            with col1:
-                alpha = st.slider('alpha', 0.0, 1.0, 0.2)
-                gamma = st.slider('gamma', 0, 5, 1)
-            with col2:
-                step_size = st.slider('step_size', 0.0, 2.0, 0.5)
-                threshold = st.slider('threshold', 0.01, 1.0, 0.02)
+            # method = st.selectbox(
+            #     'Select Function?',
+            #     ('quadratic', 'log'))
+            # col1, col2 = st.columns([1,1])
+            # with col1:
+            #     alpha = st.slider('alpha', 0.0, 1.0, 0.2)
+            #     gamma = st.slider('gamma', 0, 5, 1)
+            # with col2:
+            #     step_size = st.slider('step_size', 0.0, 2.0, 0.5)
+            #     threshold = st.slider('threshold', 0.01, 1.0, 0.02)
             
             # centered submit button
             col1, col2, col3 = st.columns([6, 4, 6])
@@ -80,12 +80,14 @@ class DocumentProcess:
             data = model.get_file_path()
             image = data["image"]
             imageArray = data["imageArray"]
-            denoised_image = imageArray
-            posterior_values, denoised_image = routine(
-                imageArray, alpha, gamma, step_size, threshold, method)
+            # print(inp)
+            outputs_image = process_image(imageArray)
+            denoised_image = outputs_image
+            # posterior_values, denoised_image = routine(
+            #     imageArray, alpha, gamma, step_size, threshold, method)
             
 
-            st.write(cost(denoised_image, imageArray))
+            # st.write(cost(denoised_image, imageArray))
             image_comparison(
                 img1=image,
                 img2=denoised_image,

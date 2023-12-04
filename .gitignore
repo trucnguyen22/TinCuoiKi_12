@@ -1,10 +1,9 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Gatsby files
-.cache/
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
+.DS_Store
+.idea/*
+experiments
+logs/
+*results*
+*__pycache__*
+*.sh
+datasets
+basicsr.egg-info
