@@ -81,7 +81,8 @@ class DocumentProcess:
             image = data["image"]
             imageArray = data["imageArray"]
             # print(inp)
-            outputs_image = process_image(imageArray)
+            with st.spinner('Wait for it...'):
+                outputs_image = process_image(imageArray)
             denoised_image = outputs_image
             # posterior_values, denoised_image = routine(
             #     imageArray, alpha, gamma, step_size, threshold, method)

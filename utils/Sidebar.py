@@ -25,10 +25,10 @@ def Sidebar(current_dir):
         )
     
     page_names_to_funcs = {
-        "Documentation": {"func":Documentation, "id": 0},
+        "⚙️Dashboard": {"func":Dashboard, "id": 0},
         # "✨ExtractDocument": {"func":ExtractDocument, "id": 1},
-        "⚙️Dashboard": {"func":Dashboard, "id": 1}, 
-        "🎉Additional informations": {"func":Informations, "id": 2},
+        # "⚙️Dashboard": {"func":Dashboard, "id": 1}, 
+        "🎉Additional informations": {"func":Informations, "id": 1},
     }
     def select_page():
         st.experimental_set_query_params(
@@ -59,8 +59,8 @@ def Sidebar(current_dir):
             with selected_page:
                 if st.button("Go home!"):
                     st.experimental_set_query_params(
-                        page="Documentation"
+                        page="⚙️Dashboard"
                     )
     else:
-        st.experimental_set_query_params(page="Documentation")
+        st.experimental_set_query_params(page="⚙️Dashboard")
         st.experimental_rerun()

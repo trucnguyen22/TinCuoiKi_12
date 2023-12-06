@@ -156,7 +156,7 @@ from basicsr.utils.options import parse
 from modules.code.NAFNet_ImageDenoising import img2tensor, imread, single_image_inference
 
 def process_image(imageArray):
-    opt_path = './options/test/SIDD/NAFNet-width64.yml'
+    opt_path = 'options/test/SIDD/NAFNet-width64.yml'
     opt = parse(opt_path, is_train=False)
     opt['dist'] = False
     NAFNet = create_model(opt)
